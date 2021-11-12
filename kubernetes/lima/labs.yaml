@@ -23,18 +23,6 @@ images:
   - location: "https://cloud-images.ubuntu.com/hirsute/current/hirsute-server-cloudimg-arm64.img"
     arch: "aarch64"
 
-# CPUs: if you see performance issues, try limiting cpus to 1.
-# Default: 4
-cpus: 2
-
-# Memory size
-# Default: "4GiB"
-memory: "8GiB"
-
-# Disk size
-# Default: "100GiB"
-disk: "100GiB"
-
 # Expose host directories to the guest
 # Default: none
 mounts:
@@ -95,6 +83,11 @@ provision:
       kind: ClusterConfiguration
       apiVersion: kubeadm.k8s.io/v1beta3
       kubernetesVersion: v1.22.1
+      apiServer:
+        certSANs:
+          - "127.0.0.1"
+          - "192.168.5.15"
+          - "10.96.0.1"
       networking:
         podSubnet: "10.244.0.0/16"
       ---
@@ -118,6 +111,8 @@ provision:
       mkdir -p $HOME/.kube
       sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
       sudo chown $(id -u):$(id -g) $HOME/.kube/config
+      cp $HOME/.kube/config /tmp/lima/$(hostname)-config
+      sed -i 's/192\.168\.5\.15/127\.0\.0\.1/g' /tmp/lima/$(hostname)-config
 
 probes:
   - mode: readiness
